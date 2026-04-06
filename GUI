@@ -1,0 +1,170 @@
+import sys
+import pyodbc
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QComboBox
+)
+
+# ================= DATABASE CONNECTION =================
+class Database:
+    def __init__(self):
+        self.conn = pyodbc.connect(
+            'DRIVER={SQL Server};'
+            'SERVER=LIANNEDREY\\SQLEXPRESS;'
+            'DATABASE=FLORA;'
+            'Trusted_Connection=yes;'
+        )
+        self.cursor = self.conn.cursor()
+
+    def fetch_records(self):
+        self.cursor.execute("""
+            SELECT r.record_id, c.Crop_name, s.Soil_Type, f.[Fertilizer_name], r.Season
+            FROM Records r
+            JOIN Crops c ON r.Crop_id = c.Crop_id
+            JOIN Soil s ON r.Soil_id = s.Soil_id
+            JOIN Fertilizer f ON r.Fertilizer_id = f.Fertilizer_id
+        """)
+        return self.cursor.fetchall()
+
+    def fetch_crops(self):
+        self.cursor.execute("SELECT Crop_id, Crop_name FROM Crops")
+        return self.cursor.fetchall()
+
+    def fetch_soil(self):
+        self.cursor.execute("SELECT Soil_id, Soil_Type FROM Soil")
+        return self.cursor.fetchall()
+
+    def fetch_fertilizer(self):
+        self.cursor.execute("SELECT Fertilizer_id, [Fertilizer_name] FROM Fertilizer")
+        return self.cursor.fetchall()
+
+    def insert_record(self, crop_id, soil_id, fertilizer_id, season):
+        self.cursor.execute(
+            "INSERT INTO Records (Crop_id, Soil_id, Fertilizer_id, Season) VALUES (?, ?, ?, ?)",
+            (crop_id, soil_id, fertilizer_id, season)
+        )
+        self.conn.commit()
+
+    def delete_record(self, record_id):
+        self.cursor.execute("DELETE FROM Records WHERE record_id=?", (record_id,))
+        self.conn.commit()
+
+# ================= MAIN GUI =================
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.db = Database()
+        self.setWindowTitle("Flora Dashboard")
+        self.setGeometry(100, 100, 1000, 600)
+        self.init_ui()
+        self.load_data()
+
+    def init_ui(self):
+        main_layout = QHBoxLayout()
+
+        # Sidebar
+        sidebar = QVBoxLayout()
+        sidebar.addWidget(QLabel("Flora"))
+        sidebar.addWidget(QPushButton("Dashboard"))
+        sidebar.addWidget(QPushButton("Records"))
+        sidebar.addWidget(QPushButton("About"))
+        sidebar.addWidget(QPushButton("Log-out"))
+
+        # Main Content
+        content = QVBoxLayout()
+
+        # Dropdowns
+        form_layout = QHBoxLayout()
+
+        self.crop_box = QComboBox()
+        self.soil_box = QComboBox()
+        self.fertilizer_box = QComboBox()
+
+        self.season_input = QLineEdit()
+        self.season_input.setPlaceholderText("Season")
+
+        add_btn = QPushButton("Add Record")
+        add_btn.clicked.connect(self.add_record)
+
+        delete_btn = QPushButton("Delete Selected")
+        delete_btn.clicked.connect(self.delete_record)
+
+        form_layout.addWidget(self.crop_box)
+        form_layout.addWidget(self.soil_box)
+        form_layout.addWidget(self.fertilizer_box)
+        form_layout.addWidget(self.season_input)
+        form_layout.addWidget(add_btn)
+        form_layout.addWidget(delete_btn)
+
+        # Table
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(["ID", "Crop", "Soil", "Fertilizer", "Season"])
+
+        content.addLayout(form_layout)
+        content.addWidget(self.table)
+
+        main_layout.addLayout(sidebar, 1)
+        main_layout.addLayout(content, 4)
+
+        self.setLayout(main_layout)
+
+        self.load_dropdowns()
+
+    def load_dropdowns(self):
+        self.crop_data = self.db.fetch_crops()
+        self.soil_data = self.db.fetch_soil()
+        self.fertilizer_data = self.db.fetch_fertilizer()
+
+        self.crop_box.clear()
+        self.soil_box.clear()
+        self.fertilizer_box.clear()
+
+        for c in self.crop_data:
+            self.crop_box.addItem(c[1], c[0])
+
+        for s in self.soil_data:
+            self.soil_box.addItem(s[1], s[0])
+
+        for f in self.fertilizer_data:
+            self.fertilizer_box.addItem(f[1], f[0])
+
+    def load_data(self):
+        data = self.db.fetch_records()
+        self.table.setRowCount(0)
+
+        for row_idx, row_data in enumerate(data):
+            self.table.insertRow(row_idx)
+            for col_idx, col_data in enumerate(row_data):
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col_data)))
+
+    def add_record(self):
+        crop_id = self.crop_box.currentData()
+        soil_id = self.soil_box.currentData()
+        fertilizer_id = self.fertilizer_box.currentData()
+        season = self.season_input.text()
+
+        if not season:
+            QMessageBox.warning(self, "Error", "Season required")
+            return
+
+        self.db.insert_record(crop_id, soil_id, fertilizer_id, season)
+        self.load_data()
+        self.season_input.clear()
+
+    def delete_record(self):
+        selected = self.table.currentRow()
+
+        if selected < 0:
+            QMessageBox.warning(self, "Error", "Select a row first")
+            return
+
+        record_id = self.table.item(selected, 0).text()
+        self.db.delete_record(record_id)
+        self.load_data()
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
