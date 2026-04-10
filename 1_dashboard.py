@@ -255,6 +255,7 @@ class AboutPage(QWidget):
             "Version 1.0\n\n"
             "A simple application to manage crop records, "
             "soil types, fertilizers, and generate usage reports.\n\n"
+            "\n\n\n Created by Group 3 - CPE22S1"
             "© 2025 Flora"
         )
         about_text.setWordWrap(True)
@@ -296,10 +297,10 @@ class MainWindow(QMainWindow):
         # Apply styles
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #f5f6fa;
+                background-color: #FEFAE0;
             }
             #sidebar {
-                background-color: #2c3e50;
+                background-color: #B8A99A;
                 border-right: 1px solid #34495e;
             }
             #logo {
@@ -370,7 +371,7 @@ class MainWindow(QMainWindow):
                 color: #2c3e50;
             }
             QTableWidget::item:selected {
-                background-color: #3498db;
+                background-color: #A76D5E;
                 color: white;
             }
             QHeaderView::section {
