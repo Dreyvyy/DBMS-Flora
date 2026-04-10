@@ -1,0 +1,11 @@
+CREATE PROCEDURE AddRecord
+    @Crop_Id INT,
+    @Soil_Id INT,
+    @Fertilizer_Id INT,
+    @Season VARCHAR(20),
+    @Amount INT
+AS
+BEGIN
+    INSERT INTO Records (Crop_Id, Soil_Id, Fertilizer_Id, Season, Amount_Fertilizer_Used_KG)
+    VALUES (@Crop_Id, @Soil_Id, @Fertilizer_Id, @Season, @Amount);
+END
