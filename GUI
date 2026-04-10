@@ -1,170 +1,253 @@
 import sys
 import pyodbc
-from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QComboBox
-)
+from PyQt6.QtWidgets import *
 
-# ================= DATABASE CONNECTION =================
+# ================= DATABASE =================
 class Database:
     def __init__(self):
         self.conn = pyodbc.connect(
-            'DRIVER={SQL Server};'
+            'DRIVER={ODBC Driver 17 for SQL Server};'
             'SERVER=LIANNEDREY\\SQLEXPRESS;'
             'DATABASE=FLORA;'
             'Trusted_Connection=yes;'
         )
         self.cursor = self.conn.cursor()
 
-    def fetch_records(self):
-        self.cursor.execute("""
-            SELECT r.record_id, c.Crop_name, s.Soil_Type, f.[Fertilizer_name], r.Season
+    def fetch_records(self, search=""):
+        query = """
+            SELECT r.Record_Id, c.Crop_name, s.Soil_Type, f.Fertilizer_name,
+                   r.Season, r.Amount_Fertilizer_Used_KG
             FROM Records r
-            JOIN Crops c ON r.Crop_id = c.Crop_id
-            JOIN Soil s ON r.Soil_id = s.Soil_id
-            JOIN Fertilizer f ON r.Fertilizer_id = f.Fertilizer_id
-        """)
+            JOIN Crops c ON r.Crop_Id = c.Crop_Id
+            JOIN Soil s ON r.Soil_Id = s.Soil_Id
+            JOIN Fertilizer f ON r.Fertilizer_Id = f.Fertilizer_Id
+        """
+
+        if search:
+            query += """
+            WHERE c.Crop_name LIKE ? OR s.Soil_Type LIKE ?
+            OR f.Fertilizer_name LIKE ? OR r.Season LIKE ?
+            """
+
+            self.cursor.execute(query, (f"%{search}%",)*4)
+        else:
+            self.cursor.execute(query)
+
         return self.cursor.fetchall()
 
-    def fetch_crops(self):
-        self.cursor.execute("SELECT Crop_id, Crop_name FROM Crops")
+    def get_crops(self):
+        self.cursor.execute("SELECT Crop_Id, Crop_name FROM Crops")
         return self.cursor.fetchall()
 
-    def fetch_soil(self):
-        self.cursor.execute("SELECT Soil_id, Soil_Type FROM Soil")
+    def get_soil(self):
+        self.cursor.execute("SELECT Soil_Id, Soil_Type FROM Soil")
         return self.cursor.fetchall()
 
-    def fetch_fertilizer(self):
-        self.cursor.execute("SELECT Fertilizer_id, [Fertilizer_name] FROM Fertilizer")
+    def get_fertilizer(self):
+        self.cursor.execute("SELECT Fertilizer_Id, Fertilizer_name FROM Fertilizer")
         return self.cursor.fetchall()
 
-    def insert_record(self, crop_id, soil_id, fertilizer_id, season):
-        self.cursor.execute(
-            "INSERT INTO Records (Crop_id, Soil_id, Fertilizer_id, Season) VALUES (?, ?, ?, ?)",
-            (crop_id, soil_id, fertilizer_id, season)
-        )
+    def insert_record(self, crop, soil, fert, season, amount):
+        self.cursor.execute("""
+            INSERT INTO Records (Crop_Id, Soil_Id, Fertilizer_Id, Season, Amount_Fertilizer_Used_KG)
+            VALUES (?, ?, ?, ?, ?)
+        """, (crop, soil, fert, season, amount))
         self.conn.commit()
 
-    def delete_record(self, record_id):
-        self.cursor.execute("DELETE FROM Records WHERE record_id=?", (record_id,))
+    def update_record(self, rid, crop, soil, fert, season, amount):
+        self.cursor.execute("""
+            UPDATE Records
+            SET Crop_Id=?, Soil_Id=?, Fertilizer_Id=?, Season=?, Amount_Fertilizer_Used_KG=?
+            WHERE Record_Id=?
+        """, (crop, soil, fert, season, amount, rid))
         self.conn.commit()
 
-# ================= MAIN GUI =================
-class MainWindow(QWidget):
+    def delete_record(self, rid):
+        self.cursor.execute("DELETE FROM Records WHERE Record_Id=?", (rid,))
+        self.conn.commit()
+
+
+# ================= GUI =================
+class App(QWidget):
     def __init__(self):
         super().__init__()
         self.db = Database()
-        self.setWindowTitle("Flora Dashboard")
-        self.setGeometry(100, 100, 1000, 600)
-        self.init_ui()
-        self.load_data()
+        self.setWindowTitle("Crop Management System")
 
-    def init_ui(self):
-        main_layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
 
-        # Sidebar
-        sidebar = QVBoxLayout()
-        sidebar.addWidget(QLabel("Flora"))
-        sidebar.addWidget(QPushButton("Dashboard"))
-        sidebar.addWidget(QPushButton("Records"))
-        sidebar.addWidget(QPushButton("About"))
-        sidebar.addWidget(QPushButton("Log-out"))
-
-        # Main Content
-        content = QVBoxLayout()
-
-        # Dropdowns
-        form_layout = QHBoxLayout()
-
-        self.crop_box = QComboBox()
-        self.soil_box = QComboBox()
-        self.fertilizer_box = QComboBox()
-
-        self.season_input = QLineEdit()
-        self.season_input.setPlaceholderText("Season")
-
-        add_btn = QPushButton("Add Record")
-        add_btn.clicked.connect(self.add_record)
-
-        delete_btn = QPushButton("Delete Selected")
-        delete_btn.clicked.connect(self.delete_record)
-
-        form_layout.addWidget(self.crop_box)
-        form_layout.addWidget(self.soil_box)
-        form_layout.addWidget(self.fertilizer_box)
-        form_layout.addWidget(self.season_input)
-        form_layout.addWidget(add_btn)
-        form_layout.addWidget(delete_btn)
+        # 🔍 SEARCH BAR
+        self.search = QLineEdit()
+        self.search.setPlaceholderText("Search...")
+        self.search.textChanged.connect(self.search_data)
+        self.layout.addWidget(self.search)
 
         # Table
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["ID", "Crop", "Soil", "Fertilizer", "Season"])
+        self.table.cellClicked.connect(self.load_selected_row)
+        self.layout.addWidget(self.table)
 
-        content.addLayout(form_layout)
-        content.addWidget(self.table)
+        # Inputs
+        form = QHBoxLayout()
 
-        main_layout.addLayout(sidebar, 1)
-        main_layout.addLayout(content, 4)
+        self.crop = QComboBox()
+        self.soil = QComboBox()
+        self.fert = QComboBox()
+        self.season = QComboBox()
+        self.season.addItems(["Dry", "Rainy"])
+        self.amount = QLineEdit()
 
-        self.setLayout(main_layout)
+        form.addWidget(QLabel("Crop"))
+        form.addWidget(self.crop)
+        form.addWidget(QLabel("Soil"))
+        form.addWidget(self.soil)
+        form.addWidget(QLabel("Fertilizer"))
+        form.addWidget(self.fert)
+        form.addWidget(QLabel("Season"))
+        form.addWidget(self.season)
+        form.addWidget(QLabel("Amount"))
+        form.addWidget(self.amount)
+
+        self.layout.addLayout(form)
+
+        # Buttons
+        btns = QHBoxLayout()
+
+        add_btn = QPushButton("Add")
+        update_btn = QPushButton("Update")
+        delete_btn = QPushButton("Delete")
+        refresh_btn = QPushButton("Refresh")
+
+        add_btn.clicked.connect(self.add_record)
+        update_btn.clicked.connect(self.update_record)
+        delete_btn.clicked.connect(self.delete_record)
+        refresh_btn.clicked.connect(self.load_data)
+
+        btns.addWidget(add_btn)
+        btns.addWidget(update_btn)
+        btns.addWidget(delete_btn)
+        btns.addWidget(refresh_btn)
+
+        self.layout.addLayout(btns)
+
+        self.setLayout(self.layout)
 
         self.load_dropdowns()
+        self.load_data()
 
     def load_dropdowns(self):
-        self.crop_data = self.db.fetch_crops()
-        self.soil_data = self.db.fetch_soil()
-        self.fertilizer_data = self.db.fetch_fertilizer()
+        self.crop.clear()
+        for cid, name in self.db.get_crops():
+            self.crop.addItem(name, cid)
 
-        self.crop_box.clear()
-        self.soil_box.clear()
-        self.fertilizer_box.clear()
+        self.soil.clear()
+        for sid, name in self.db.get_soil():
+            self.soil.addItem(name, sid)
 
-        for c in self.crop_data:
-            self.crop_box.addItem(c[1], c[0])
-
-        for s in self.soil_data:
-            self.soil_box.addItem(s[1], s[0])
-
-        for f in self.fertilizer_data:
-            self.fertilizer_box.addItem(f[1], f[0])
+        self.fert.clear()
+        for fid, name in self.db.get_fertilizer():
+            self.fert.addItem(name, fid)
 
     def load_data(self):
         data = self.db.fetch_records()
-        self.table.setRowCount(0)
+        self.populate_table(data)
 
-        for row_idx, row_data in enumerate(data):
-            self.table.insertRow(row_idx)
-            for col_idx, col_data in enumerate(row_data):
-                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col_data)))
+    def populate_table(self, data):
+        self.table.setRowCount(len(data))
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(
+            ["ID", "Crop", "Soil", "Fertilizer", "Season", "Amount"]
+        )
+
+        for row_idx, row in enumerate(data):
+            for col_idx, col in enumerate(row):
+                self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col)))
+
+    # 🔍 SEARCH FUNCTION
+    def search_data(self):
+        text = self.search.text()
+        data = self.db.fetch_records(text)
+        self.populate_table(data)
+
+    # 🎯 AUTO-FILL WHEN CLICK ROW
+    def load_selected_row(self):
+        row = self.table.currentRow()
+
+        crop = self.table.item(row, 1).text()
+        soil = self.table.item(row, 2).text()
+        fert = self.table.item(row, 3).text()
+        season = self.table.item(row, 4).text()
+        amount = self.table.item(row, 5).text()
+
+        self.set_combo(self.crop, crop)
+        self.set_combo(self.soil, soil)
+        self.set_combo(self.fert, fert)
+        self.set_combo(self.season, season)
+        self.amount.setText(amount)
+
+    def set_combo(self, combo, text):
+        index = combo.findText(text)
+        if index >= 0:
+            combo.setCurrentIndex(index)
+
+    # ✅ VALIDATION
+    def validate(self):
+        if self.amount.text() == "":
+            QMessageBox.warning(self, "Error", "Amount is required")
+            return False
+
+        if not self.amount.text().isdigit():
+            QMessageBox.warning(self, "Error", "Amount must be a number")
+            return False
+
+        return True
 
     def add_record(self):
-        crop_id = self.crop_box.currentData()
-        soil_id = self.soil_box.currentData()
-        fertilizer_id = self.fertilizer_box.currentData()
-        season = self.season_input.text()
-
-        if not season:
-            QMessageBox.warning(self, "Error", "Season required")
+        if not self.validate():
             return
 
-        self.db.insert_record(crop_id, soil_id, fertilizer_id, season)
+        self.db.insert_record(
+            self.crop.currentData(),
+            self.soil.currentData(),
+            self.fert.currentData(),
+            self.season.currentText(),
+            int(self.amount.text())
+        )
         self.load_data()
-        self.season_input.clear()
+
+    def update_record(self):
+        row = self.table.currentRow()
+        if row == -1:
+            return
+
+        if not self.validate():
+            return
+
+        rid = int(self.table.item(row, 0).text())
+
+        self.db.update_record(
+            rid,
+            self.crop.currentData(),
+            self.soil.currentData(),
+            self.fert.currentData(),
+            self.season.currentText(),
+            int(self.amount.text())
+        )
+        self.load_data()
 
     def delete_record(self):
-        selected = self.table.currentRow()
-
-        if selected < 0:
-            QMessageBox.warning(self, "Error", "Select a row first")
+        row = self.table.currentRow()
+        if row == -1:
             return
 
-        record_id = self.table.item(selected, 0).text()
-        self.db.delete_record(record_id)
+        rid = int(self.table.item(row, 0).text())
+
+        self.db.delete_record(rid)
         self.load_data()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+
+# ================= RUN =================
+app = QApplication(sys.argv)
+window = App()
+window.show()
+sys.exit(app.exec())
