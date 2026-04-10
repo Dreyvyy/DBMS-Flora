@@ -1,0 +1,37 @@
+USE FLORA
+GO
+
+CREATE TABLE Crops_Type (
+    Crop_Type_Id INT PRIMARY KEY IDENTITY(1,1),
+    Crop_Type VARCHAR(50)
+);
+
+CREATE TABLE Crops (
+    Crop_Id INT PRIMARY KEY IDENTITY(1,1),
+    Crop_name VARCHAR(50),
+    Crop_Type_Id INT,
+    FOREIGN KEY (Crop_Type_Id) REFERENCES Crops_Type(Crop_Type_Id)
+);
+
+CREATE TABLE Soil (
+    Soil_Id INT PRIMARY KEY IDENTITY(1,1),
+    Soil_Type VARCHAR(50)
+);
+
+CREATE TABLE Fertilizer (
+    Fertilizer_Id INT PRIMARY KEY IDENTITY(1,1),
+    Fertilizer_name VARCHAR(50)
+);
+
+CREATE TABLE Records (
+    Record_Id INT PRIMARY KEY IDENTITY(1,1),
+    Crop_Id INT,
+    Soil_Id INT,
+    Fertilizer_Id INT,
+    Season VARCHAR(20),
+    Amount_Fertilizer_Used_KG INT,
+    FOREIGN KEY (Crop_Id) REFERENCES Crops(Crop_Id),
+    FOREIGN KEY (Soil_Id) REFERENCES Soil(Soil_Id),
+    FOREIGN KEY (Fertilizer_Id) REFERENCES Fertilizer(Fertilizer_Id)
+);
+
