@@ -1,42 +1,142 @@
-from PyQt6.QtWidgets import *
-from records import Records
-from reports import Reports
+# database.py
+import pyodbc
 
-class Dashboard(QWidget):
+class Database:
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Dashboard")
+        try:
+            self.conn = pyodbc.connect(
+                'DRIVER={ODBC Driver 17 for SQL Server};'
+                'SERVER=LIANNEDREY\\SQLEXPRESS;'
+                'DATABASE=FLORA;'
+                'Trusted_Connection=yes;'
+            )
+            self.cursor = self.conn.cursor()
+        except Exception as e:
+            print(f"Database connection error: {e}")
+            raise
 
-        layout = QVBoxLayout()
+    def login(self, username, password):
+        """Verify login credentials and return user_id and username"""
+        try:
+            # Check if the table has 'id' or 'user_id' column
+            # Adjust the column name based on your actual database schema
+            query = "SELECT User_Id, Username FROM Users WHERE Username = ? AND Password = ?"
+            self.cursor.execute(query, (username, password))
+            result = self.cursor.fetchone()
+            if result:
+                return result[0], result[1]  # Return user_id and username
+            return None, None
+        except Exception as e:
+            print(f"Login error: {e}")
+            return None, None
 
-        layout.addWidget(QLabel("🌱 Crop Management System"))
+    def register(self, username, password):
+        """Register a new user"""
+        try:
+            # Check if username already exists
+            self.cursor.execute("SELECT Username FROM Users WHERE Username = ?", (username,))
+            if self.cursor.fetchone():
+                return False
+            
+            # Insert new user (adjust column names based on your schema)
+            self.cursor.execute("INSERT INTO Users (Username, Password) VALUES (?,?)", (username, password))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Registration error: {e}")
+            self.conn.rollback()
+            return False
 
-        btn1 = QPushButton("Manage Records")
-        btn2 = QPushButton("View Reports")
-        btn3 = QPushButton("Logout")
+    def get_crops(self):
+        try:
+            self.cursor.execute("SELECT Crop_Id, Crop_name FROM Crops")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching crops: {e}")
+            return []
 
-        btn1.clicked.connect(self.open_records)
-        btn2.clicked.connect(self.open_reports)
-        btn3.clicked.connect(self.logout)
+    def get_soil(self):
+        try:
+            self.cursor.execute("SELECT Soil_Id, Soil_Type FROM Soil")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching soil types: {e}")
+            return []
 
-        layout.addWidget(btn1)
-        layout.addWidget(btn2)
-        layout.addWidget(btn3)
+    def get_fert(self):
+        try:
+            self.cursor.execute("SELECT Fertilizer_Id, Fertilizer_name FROM Fertilizer")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching fertilizers: {e}")
+            return []
 
-        self.setLayout(layout)
+    def fetch_records(self, search=""):
+        try:
+            query = """
+            SELECT r.Record_Id, c.Crop_name, s.Soil_Type, f.Fertilizer_name,
+                   r.Season, r.Amount_Fertilizer_Used_KG
+            FROM Records r
+            JOIN Crops c ON r.Crop_Id = c.Crop_Id
+            JOIN Soil s ON r.Soil_Id = s.Soil_Id
+            JOIN Fertilizer f ON r.Fertilizer_Id = f.Fertilizer_Id
+            """
+            if search:
+                query += " WHERE c.Crop_name LIKE ? OR r.Season LIKE ?"
+                self.cursor.execute(query, (f"%{search}%", f"%{search}%"))
+            else:
+                self.cursor.execute(query)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching records: {e}")
+            return []
 
-    def open_records(self):
-        self.w = Records()
-        self.w.show()
+    def insert_record(self, crop_id, soil_id, fertilizer_id, season, amount):
+        try:
+            self.cursor.execute(
+                "INSERT INTO Records (Crop_Id, Soil_Id, Fertilizer_Id, Season, Amount_Fertilizer_Used_KG) VALUES (?,?,?,?,?)", 
+                (crop_id, soil_id, fertilizer_id, season, amount)
+            )
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error inserting record: {e}")
+            self.conn.rollback()
+            return False
 
-    def open_reports(self):
-        self.r = Reports()
-        self.r.show()
+    def update_record(self, record_id, crop_id, soil_id, fertilizer_id, season, amount):
+        try:
+            self.cursor.execute("""
+            UPDATE Records 
+            SET Crop_Id=?, Soil_Id=?, Fertilizer_Id=?, Season=?, Amount_Fertilizer_Used_KG=?
+            WHERE Record_Id=?""", (crop_id, soil_id, fertilizer_id, season, amount, record_id))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating record: {e}")
+            self.conn.rollback()
+            return False
 
-    def logout(self):
-        # CLOSE dashboard only
-        self.close()
+    def delete_record(self, record_id):
+        try:
+            self.cursor.execute("DELETE FROM Records WHERE Record_Id=?", (record_id,))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting record: {e}")
+            self.conn.rollback()
+            return False
 
-        # reopen login through main entry point
-        from main import show_login
-        show_login()
+    def fertilizer_report(self):
+        try:
+            self.cursor.execute("""
+            SELECT c.Crop_name, SUM(r.Amount_Fertilizer_Used_KG) as Total_Fertilizer
+            FROM Records r
+            JOIN Crops c ON r.Crop_Id = c.Crop_Id
+            GROUP BY c.Crop_name
+            ORDER BY Total_Fertilizer DESC
+            """)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error generating report: {e}")
+            return []
