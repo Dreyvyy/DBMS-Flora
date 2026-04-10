@@ -255,8 +255,8 @@ class AboutPage(QWidget):
             "Version 1.0\n\n"
             "A simple application to manage crop records, "
             "soil types, fertilizers, and generate usage reports.\n\n"
-            "\n\n\n Created by Group 3 - CPE22S1"
-            "© 2025 Flora"
+            "\n\n Created by Group 3 - CPE22S1"
+            "\n© 2025 Flora"
         )
         about_text.setWordWrap(True)
         about_text.setStyleSheet("font-size: 14px; color: #2d3436;")
@@ -310,27 +310,30 @@ class MainWindow(QMainWindow):
                 padding: 10px;
             }
             #username {
-                font-size: 14px;
-                color: #bdc3c7;
+                font-size: 20px;
+                font-family: 'MuseoModerno';
+                color: #FFFFFF;
                 padding: 5px;
                 border-bottom: 1px solid #34495e;
             }
             #nav-btn {
                 background-color: transparent;
-                color: #ecf0f1;
-                font-size: 14px;
-                text-align: left;
-                padding: 12px 20px;
+                color: #FEFAE0;
+                font-size: 25px;
+                font-family: 'MuseoModerno';
+                text-align: right;
+                padding: 12px 10px;
                 border: none;
                 border-radius: 0px;
             }
             #nav-btn:hover {
-                background-color: #34495e;
+                background-color: #DFCCBA;
+                color: #783d19;
             }
             #logout-btn {
                 background-color: #e74c3c;
                 color: white;
-                font-size: 14px;
+                font-size: 20px;
                 padding: 10px;
                 margin: 10px;
                 border: none;
@@ -390,10 +393,10 @@ class MainWindow(QMainWindow):
                 color: #2c3e50;
             }
             QComboBox {
-                color: #2c3e50;
+                color: #FEFAE0;
             }
             QComboBox QAbstractItemView {
-                color: #2c3e50;
+                color: #FEFAE0;
             }
             #action-btn {
                 background-color: #3498db;
