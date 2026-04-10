@@ -1,0 +1,17 @@
+CREATE PROCEDURE UpdateRecord
+    @Record_Id INT,
+    @Crop_Id INT,
+    @Soil_Id INT,
+    @Fertilizer_Id INT,
+    @Season VARCHAR(20),
+    @Amount INT
+AS
+BEGIN
+    UPDATE Records
+    SET Crop_Id = @Crop_Id,
+        Soil_Id = @Soil_Id,
+        Fertilizer_Id = @Fertilizer_Id,
+        Season = @Season,
+        Amount_Fertilizer_Used_KG = @Amount
+    WHERE Record_Id = @Record_Id;
+END
