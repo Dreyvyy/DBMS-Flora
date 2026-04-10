@@ -1,0 +1,6 @@
+CREATE PROCEDURE DeleteRecord
+    @Record_Id INT
+AS
+BEGIN
+    DELETE FROM Records WHERE Record_Id = @Record_Id;
+END
