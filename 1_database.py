@@ -126,17 +126,60 @@ class Database:
             print(f"Error deleting record: {e}")
             self.conn.rollback()
             return False
-
-    def fertilizer_report(self):
+        
+    def crop_report(self):
+        """Generate report showing crop usage/planting frequency"""
         try:
             self.cursor.execute("""
-            SELECT c.Crop_name, SUM(r.Amount_Fertilizer_Used_KG) as Total_Fertilizer
-            FROM Records r
-            JOIN Crops c ON r.Crop_Id = c.Crop_Id
-            GROUP BY c.Crop_name
-            ORDER BY Total_Fertilizer DESC
+                SELECT c.Crop_name, COUNT(r.Record_Id) as Times_Planted
+                FROM Records r
+                JOIN Crops c ON r.Crop_Id = c.Crop_Id
+                GROUP BY c.Crop_name
+                ORDER BY Times_Planted DESC
             """)
             return self.cursor.fetchall()
         except Exception as e:
-            print(f"Error generating report: {e}")
+            print(f"Error generating crop report: {e}")
+            return []
+
+    # Optional: If you want more detailed crop reports with fertilizer usage
+    def crop_detailed_report(self):
+        """Generate detailed crop report including total fertilizer used and average per planting"""
+        try:
+            self.cursor.execute("""
+                SELECT 
+                    c.Crop_name,
+                    COUNT(r.Record_Id) as Times_Planted,
+                    SUM(r.Amount_Fertilizer_Used_KG) as Total_Fertilizer_KG,
+                    AVG(r.Amount_Fertilizer_Used_KG) as Avg_Fertilizer_Per_Planting_KG,
+                    MIN(r.Amount_Fertilizer_Used_KG) as Min_Fertilizer_KG,
+                    MAX(r.Amount_Fertilizer_Used_KG) as Max_Fertilizer_KG
+                FROM Records r
+                JOIN Crops c ON r.Crop_Id = c.Crop_Id
+                GROUP BY c.Crop_name
+                ORDER BY Total_Fertilizer_KG DESC
+            """)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error generating detailed crop report: {e}")
+            return []
+
+    # Optional: Seasonal crop report
+    def crop_seasonal_report(self):
+        """Generate crop report grouped by season"""
+        try:
+            self.cursor.execute("""
+                SELECT 
+                    c.Crop_name,
+                    r.Season,
+                    COUNT(r.Record_Id) as Times_Planted,
+                    SUM(r.Amount_Fertilizer_Used_KG) as Total_Fertilizer_KG
+                FROM Records r
+                JOIN Crops c ON r.Crop_Id = c.Crop_Id
+                GROUP BY c.Crop_name, r.Season
+                ORDER BY c.Crop_name, r.Season DESC
+            """)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error generating seasonal crop report: {e}")
             return []
