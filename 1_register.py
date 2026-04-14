@@ -7,157 +7,200 @@ class Register(QWidget):
     def __init__(self):
         super().__init__()
         self.db = Database()
-        self.setWindowTitle("Register")
-        self.setFixedSize(1000, 500)
+        self.setWindowTitle("Flora — Create Account")
+        self.setFixedSize(1000, 750)
         
-        # Center the window on screen
-        self.setWindowFlags(Qt.WindowType.WindowCloseButtonHint)
+        # Center the window
+        self.center_window()
         
+        # Main layout
         layout = QVBoxLayout()
-        layout.setSpacing(15)
         layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(15)
         
-        # Title
-        title = QLabel("🌱 Create Account")
+        # Header
+        title = QLabel("Create Account")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 20px;")
-        layout.addWidget(title)
+        title.setStyleSheet("""
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #2c3e50;
+            margin-bottom: 20px;
+        """)
+        
+        subtitle = QLabel("Join Flora to manage your crops")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle.setStyleSheet("""
+            font-size: 12px; 
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        """)
         
         # Username field
-        self.u = QLineEdit()
-        self.u.setPlaceholderText("Username")
-        self.u.setStyleSheet("""
+        username_label = QLabel("Username")
+        username_label.setStyleSheet("font-size: 12px; font-weight: bold; color: #34495e; margin-bottom: 5px;")
+        
+        self.user = QLineEdit()
+        self.user.setPlaceholderText("Choose a username")
+        self.user.setStyleSheet("""
             QLineEdit {
-                padding: 10px; 
+                padding: 12px;
                 font-size: 14px;
-                border: 1px solid #dcdde1;
-                border-radius: 5px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background-color: white;
             }
             QLineEdit:focus {
-                border: 1px solid #3498db;
+                border: 2px solid #2d5a3f;
             }
         """)
         
         # Password field
-        self.p = QLineEdit()
-        self.p.setPlaceholderText("Password")
-        self.p.setEchoMode(QLineEdit.EchoMode.Password)
-        self.p.setStyleSheet("""
+        password_label = QLabel("Password")
+        password_label.setStyleSheet("font-size: 12px; font-weight: bold; color: #34495e; margin-bottom: 5px; margin-top: 10px;")
+        
+        self.passw = QLineEdit()
+        self.passw.setPlaceholderText("Create a password")
+        self.passw.setEchoMode(QLineEdit.EchoMode.Password)
+        self.passw.setStyleSheet("""
             QLineEdit {
-                padding: 10px; 
+                padding: 12px;
                 font-size: 14px;
-                border: 1px solid #dcdde1;
-                border-radius: 5px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background-color: white;
             }
             QLineEdit:focus {
-                border: 1px solid #3498db;
+                border: 2px solid #2d5a3f;
             }
         """)
         
         # Confirm password field
-        self.confirm_p = QLineEdit()
-        self.confirm_p.setPlaceholderText("Confirm Password")
-        self.confirm_p.setEchoMode(QLineEdit.EchoMode.Password)
-        self.confirm_p.setStyleSheet("""
+        confirm_label = QLabel("Confirm Password")
+        confirm_label.setStyleSheet("font-size: 12px; font-weight: bold; color: #34495e; margin-bottom: 5px; margin-top: 10px;")
+        
+        self.confirm_pass = QLineEdit()
+        self.confirm_pass.setPlaceholderText("Confirm your password")
+        self.confirm_pass.setEchoMode(QLineEdit.EchoMode.Password)
+        self.confirm_pass.setStyleSheet("""
             QLineEdit {
-                padding: 10px; 
+                padding: 12px;
                 font-size: 14px;
-                border: 1px solid #dcdde1;
-                border-radius: 5px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background-color: white;
             }
             QLineEdit:focus {
-                border: 1px solid #3498db;
+                border: 2px solid #2d5a3f;
             }
         """)
         
-        # Create account button
-        btn = QPushButton("Create Account")
-        btn.setStyleSheet("""
+        # Register button
+        reg_btn = QPushButton("REGISTER")
+        reg_btn.setStyleSheet("""
             QPushButton {
-                background-color: #27ae60;
+                background-color: #2d5a3f;
                 color: white;
-                padding: 10px;
+                padding: 12px;
                 font-size: 14px;
+                font-weight: bold;
                 border: none;
-                border-radius: 5px;
-                margin-top: 10px;
+                border-radius: 8px;
+                margin-top: 20px;
+                cursor: pointer;
             }
             QPushButton:hover {
-                background-color: #229954;
-            }
-            QPushButton:pressed {
-                background-color: #1e8449;
+                background-color: #1a472a;
             }
         """)
         
-        btn.clicked.connect(self.create)
-        
-        # Back to login link
-        back_btn = QPushButton("Back to Login")
-        back_btn.setStyleSheet("""
+        # Cancel button
+        cancel_btn = QPushButton("CANCEL")
+        cancel_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                color: #3498db;
-                padding: 5px;
+                color: #7f8c8d;
+                padding: 10px;
                 font-size: 12px;
-                border: none;
-                text-decoration: underline;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                margin-top: 10px;
+                cursor: pointer;
             }
             QPushButton:hover {
-                color: #2980b9;
+                border-color: #2d5a3f;
+                color: #2d5a3f;
             }
         """)
-        back_btn.clicked.connect(self.back_to_login)
         
-        layout.addWidget(self.u)
-        layout.addWidget(self.p)
-        layout.addWidget(self.confirm_p)
-        layout.addWidget(btn)
-        layout.addWidget(back_btn)
+        # Connect signals
+        reg_btn.clicked.connect(self.register)
+        cancel_btn.clicked.connect(self.close)
+        
+        # Enable Enter key on password fields
+        self.passw.returnPressed.connect(self.register)
+        self.confirm_pass.returnPressed.connect(self.register)
+        
+        # Add to layout
+        layout.addWidget(title)
+        layout.addWidget(subtitle)
+        layout.addWidget(username_label)
+        layout.addWidget(self.user)
+        layout.addWidget(password_label)
+        layout.addWidget(self.passw)
+        layout.addWidget(confirm_label)
+        layout.addWidget(self.confirm_pass)
+        layout.addWidget(reg_btn)
+        layout.addWidget(cancel_btn)
+        layout.addStretch()
         
         self.setLayout(layout)
+        
+        # Apply global style
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', 'Arial', sans-serif;
+            }
+        """)
     
-    def create(self):
-        # Validate inputs
-        username = self.u.text().strip()
-        password = self.p.text()
-        confirm_password = self.confirm_p.text()
+    def center_window(self):
+        """Center the window on the screen"""
+        screen = QApplication.primaryScreen().geometry()
+        x = (screen.width() - self.width()) // 2
+        y = (screen.height() - self.height()) // 2
+        self.move(x, y)
+    
+    def register(self):
+        """Handle registration"""
+        username = self.user.text().strip()
+        password = self.passw.text()
+        confirm = self.confirm_pass.text()
         
-        # Check if fields are empty
-        if not username:
-            QMessageBox.warning(self, "Error", "Please enter a username")
+        # Validation
+        if not username or not password or not confirm:
+            QMessageBox.warning(self, "Error", "Please fill in all fields")
             return
         
-        if not password:
-            QMessageBox.warning(self, "Error", "Please enter a password")
+        if len(username) < 3:
+            QMessageBox.warning(self, "Error", "Username must be at least 3 characters long")
             return
         
-        # Check if passwords match
-        if password != confirm_password:
-            QMessageBox.warning(self, "Error", "Passwords do not match")
-            # Clear password fields
-            self.p.clear()
-            self.confirm_p.clear()
-            return
-        
-        # Check password length
         if len(password) < 4:
             QMessageBox.warning(self, "Error", "Password must be at least 4 characters long")
-            self.p.clear()
-            self.confirm_p.clear()
             return
         
-        # Attempt to register
+        if password != confirm:
+            QMessageBox.warning(self, "Error", "Passwords do not match")
+            self.passw.clear()
+            self.confirm_pass.clear()
+            return
+        
+        # Attempt registration
         if self.db.register(username, password):
-            QMessageBox.information(self, "Success", "Account created successfully!\n\nYou can now login with your credentials.")
+            QMessageBox.information(self, "Success", "Account created successfully!\nYou can now login.")
             self.close()
         else:
-            QMessageBox.warning(self, "Error", "Username already exists. Please choose a different username.")
-            self.u.clear()
-            self.p.clear()
-            self.confirm_p.clear()
-            self.u.setFocus()
-    
-    def back_to_login(self):
-        """Close registration window to return to login"""
-        self.close()
+            QMessageBox.warning(self, "Error", "Username already exists. Please choose another one.")
+            self.user.clear()
+            self.user.setFocus()
