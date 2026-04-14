@@ -1,4 +1,3 @@
-# database.py
 import pyodbc
 
 class Database:
@@ -18,13 +17,11 @@ class Database:
     def login(self, username, password):
         """Verify login credentials and return user_id and username"""
         try:
-            # Check if the table has 'id' or 'user_id' column
-            # Adjust the column name based on your actual database schema
             query = "SELECT User_Id, Username FROM Users WHERE Username = ? AND Password = ?"
             self.cursor.execute(query, (username, password))
             result = self.cursor.fetchone()
             if result:
-                return result[0], result[1]  # Return user_id and username
+                return result[0], result[1]
             return None, None
         except Exception as e:
             print(f"Login error: {e}")
@@ -33,12 +30,10 @@ class Database:
     def register(self, username, password):
         """Register a new user"""
         try:
-            # Check if username already exists
             self.cursor.execute("SELECT Username FROM Users WHERE Username = ?", (username,))
             if self.cursor.fetchone():
                 return False
             
-            # Insert new user (adjust column names based on your schema)
             self.cursor.execute("INSERT INTO Users (Username, Password) VALUES (?,?)", (username, password))
             self.conn.commit()
             return True
@@ -142,7 +137,6 @@ class Database:
             print(f"Error generating crop report: {e}")
             return []
 
-    # Optional: If you want more detailed crop reports with fertilizer usage
     def crop_detailed_report(self):
         """Generate detailed crop report including total fertilizer used and average per planting"""
         try:
@@ -164,7 +158,6 @@ class Database:
             print(f"Error generating detailed crop report: {e}")
             return []
 
-    # Optional: Seasonal crop report
     def crop_seasonal_report(self):
         """Generate crop report grouped by season"""
         try:
