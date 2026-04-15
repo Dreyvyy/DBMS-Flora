@@ -1,28 +1,27 @@
-# dashboard.py
 from PyQt6.QtWidgets import *
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QBrush, QColor, QFont
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 from database import Database
 
-BG_DEEP    = "#111A0E"
-BG_PANEL   = "#162010"
-BG_ROW_ALT = "#1E2B18"
-BG_HOVER   = "#243020"
-BORDER     = "#2B3D20"
-ACCENT     = "#A8C832"
+BG_DEEP    = "#0d1f12"
+BG_PANEL   = "#1a3d25"
+BG_ROW_ALT = "#1f4a2c"
+BG_HOVER   = "#245532"
+BORDER     = "#2d5a3f"
+ACCENT     = "#a8e6cf"
 ACCENT2    = "#6BAF3C"
-TEXT_PRI   = "#E8F0D0"
-TEXT_SEC   = "#7A9060"
-TEXT_HEAD  = "#A8C832"
+TEXT_PRI   = "#e8f5ee"
+TEXT_SEC   = "#7aab8a"
+TEXT_HEAD  = "#a8e6cf"
 RED_SOFT   = "#C84040"
 RED_BG     = "#2A1010"
 
-SOFT_GREEN = "#98A086"
-WARM_BROWN = "#C4A071"
-CREAM      = "#DFCCB1"
-DARK_BROWN = "#846044"
-PURPLE     = "#A765D5"  
-CORNSILK   = "#FEFAE0"
+SOFT_GREEN = "#a8e6cf"
+WARM_BROWN = "#6BAF3C"
+CREAM      = "#d4f1e3"
+DARK_BROWN = "#1a472a"
+PURPLE     = "#a8e6cf"
+CORNSILK   = "#e8f5ee"
 
 TABLE_STYLE = f"""
     QTableWidget {{
@@ -260,18 +259,18 @@ SIDEBAR_STYLE = f"""
     QFrame#sidebar {{ background-color: {BG_PANEL}; border-right: 1px solid {BORDER}; }}
     #logo {{ font-size: 18px; font-weight: 900; color: {ACCENT}; padding: 8px 20px 0 20px; letter-spacing: 3px; }}
     #tagline {{ font-size: 8px; color: {TEXT_SEC}; padding: 0 20px 10px 20px; letter-spacing: 3px; font-family: 'MuseoModerno'; }}
-    #username {{ font-size: 11px; color: {TEXT_SEC}; padding: 4px 20px 14px 20px; letter-spacing: 1px; }}
+    #username {{ font-size: 11px; color: {TEXT_SEC}; padding: 4px 20px 14px 20px; letter-spacing: 1px; font-family: 'MuseoModerno'; }}
     #nav-btn {{
         background-color: transparent; color: {TEXT_SEC};
-        font-size: 25px; font-weight: 600; text-align: right;
-        padding: 15px 20px; margin: 3px 20px; border: none; border-radius: 8px;
+        font-size: 20px; font-weight: 600; text-align: right;
+        padding: 12px 20px; margin: 3px 10px; border: none; border-radius: 8px; font-family: 'MuseoModerno';
     }}
     #nav-btn:hover {{ background-color: {BG_HOVER}; color: {TEXT_PRI}; }}
     #nav-btn-active {{
         background-color: {BG_HOVER}; color: {ACCENT};
-        font-size: 25px; font-weight: 700; text-align: right;
-        padding: 15px 20px; margin: 3px 20px;
-        border: none; border-right: 3px solid {ACCENT}; border-radius: 8px;
+        font-size: 20px; font-weight: 700; text-align: right;
+        padding: 12px 17px; margin: 3px 10px;
+        border: none; border-right: 3px solid {ACCENT}; border-radius: 8px; font-family: 'MuseoModerno';
     }}
     #logout-btn {{
         background-color: {RED_BG}; color: {RED_SOFT};
@@ -280,6 +279,11 @@ SIDEBAR_STYLE = f"""
     }}
     #logout-btn:hover {{ background-color: {RED_SOFT}; color: white; }}
 """
+#para center yung tables
+class CenterDelegate(QStyledItemDelegate):
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        option.displayAlignment = Qt.AlignmentFlag.AlignCenter
 
 def page_title(text):
     lbl = QLabel(text)
@@ -307,7 +311,7 @@ def stat_card(icon, value, label, color=ACCENT):
             transform: scale(1.02);
         }}
     """)
-    card.setFixedHeight(100)
+    card.setFixedHeight(110)
     h = QHBoxLayout()
     h.setContentsMargins(20, 16, 20, 16)
     h.setSpacing(14)
@@ -354,6 +358,7 @@ def section_card():
     """)
     return f
 
+#itsura ng tables
 def make_table():
     t = QTableWidget()
     t.setAlternatingRowColors(True)
@@ -365,17 +370,18 @@ def make_table():
     t.setStyleSheet(TABLE_STYLE)
     t.verticalHeader().setDefaultSectionSize(55)
     t.horizontalHeader().setStretchLastSection(True)
-    t.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    t.setItemDelegate(CenterDelegate())
+    t.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
     t.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
     t.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-    t.setSortingEnabled(True)  # Enable sorting by clicking headers
+    t.setSortingEnabled(True) 
     
-    # Set font for better readability
-    font = QFont("Segoe UI", 10)
+    font = QFont("MuseoModerno", 10)
     t.setFont(font)
     
     return t
 
+#for the side
 class FloraSidebar(QFrame):
     def __init__(self, stacked_widget, username):
         super().__init__()
@@ -389,6 +395,7 @@ class FloraSidebar(QFrame):
         layout.setSpacing(2)
 
         logo = QLabel("🌱 FLORA")
+        logo.setStyleSheet(f"font-family: 'MuseoModerno';")
         logo.setObjectName("logo")
         layout.addWidget(logo)
 
@@ -453,64 +460,76 @@ class DashboardPage(QWidget):
     def setup_ui(self):
         layout = QVBoxLayout()
         layout.setContentsMargins(36, 36, 36, 36)
-        layout.setSpacing(25)
-        layout.addWidget(page_title("Dashboard"))
-        
+        layout.setSpacing(20)
+
+        title_row = QHBoxLayout()
+        title_row.addWidget(page_title("Dashboard"))
+        title_row.addStretch()
+        welcome = QLabel("Welcome back! Here's your farm overview 🌾")
+        welcome.setStyleSheet(f"font-size: 13px; color: {TEXT_SEC}; background: transparent; font-style: italic;")
+        welcome.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        title_row.addWidget(welcome)
+        layout.addLayout(title_row)
+
         self.cards_layout = QHBoxLayout()
         self.cards_layout.setSpacing(16)
         layout.addLayout(self.cards_layout)
-        
-        # Add welcome message
-        welcome = QLabel("Welcome back! Here's your farm overview 🌾")
-        welcome.setStyleSheet(f"""
-            font-size: 14px; 
-            color: {TEXT_SEC}; 
-            margin-top: 10px;
-            margin-bottom: 20px;
-            background: transparent;
-            font-style: italic;
-        """)
-        layout.addWidget(welcome)
-        
+
+        self.summary_card = section_card()
+        summary_v = QVBoxLayout()
+        summary_v.setContentsMargins(20, 16, 20, 16)
+        summary_v.setSpacing(10)
+
+        summary_title = QLabel("QUICK SUMMARY")
+        summary_title.setStyleSheet(f"font-size: 10px; font-weight: 800; color: {TEXT_SEC}; letter-spacing: 2px; background: transparent;")
+        summary_v.addWidget(summary_title)
+
+        self.summary_table = make_table()
+        self.summary_table.setSortingEnabled(False)
+        self.summary_table.setColumnCount(4)
+        self.summary_table.setHorizontalHeaderLabels(["🌾 CROP", "📊 TIMES PLANTED", "⚖️ TOTAL FERT (KG)", "📈 AVG FERT (KG)"])
+        summary_v.addWidget(self.summary_table)
+        self.summary_card.setLayout(summary_v)
+        layout.addWidget(self.summary_card, stretch=1)
+
         self.footer = QLabel("✨ Grow your data with Flora — Smart farming, better harvests ✨")
         self.footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.footer.setStyleSheet(f"""
-            font-size: 12px; 
-            color: {TEXT_SEC}; 
-            margin-top: 40px; 
-            background: transparent;
-            padding: 15px;
-            border-top: 1px solid {BORDER};
-        """)
-        layout.addStretch()
+        self.footer.setStyleSheet(f"font-size: 11px; color: {TEXT_SEC}; background: transparent; padding: 10px; border-top: 1px solid {BORDER};")
         layout.addWidget(self.footer)
+
         self.setLayout(layout)
-        
         self.refresh_data()
     
     def refresh_data(self):
-        # Clear existing cards
         while self.cards_layout.count():
             item = self.cards_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-        
-        # Fetch fresh data
+
         total_crops   = len(self.db.get_crops())
         total_records = len(self.db.fetch_records(""))
         crop_rep      = self.db.crop_report()
         most_planted  = crop_rep[0][0] if crop_rep else "N/A"
         records       = self.db.fetch_records("")
         avg_fert      = round(sum(x[5] for x in records) / max(total_records, 1), 1) if records else 0
-        
-        # Create new cards with different colors
-        colors = [ACCENT, ACCENT2, WARM_BROWN, CREAM]
-        self.cards_layout.addWidget(stat_card("🌾", total_crops, "Crop Types", colors[0]))
-        self.cards_layout.addWidget(stat_card("📋", total_records, "Total Records", colors[1]))
-        self.cards_layout.addWidget(stat_card("🏆", most_planted, "Most Planted", colors[2]))
-        self.cards_layout.addWidget(stat_card("💧", f"{avg_fert} kg", "Avg Fertilizer", colors[3]))
 
-# ── Records Page (Enhanced Table) ─────────────────────────────────────────
+        colors = [ACCENT, ACCENT2, WARM_BROWN, CREAM]
+        self.cards_layout.addWidget(stat_card("🌾", total_crops,      "Crop Types",    colors[0]))
+        self.cards_layout.addWidget(stat_card("📋", total_records,    "Total Records", colors[1]))
+        self.cards_layout.addWidget(stat_card("🏆", most_planted,     "Most Planted",  colors[2]))
+        self.cards_layout.addWidget(stat_card("💧", f"{avg_fert} kg", "Avg Fertilizer",colors[3]))
+
+        detailed = self.db.crop_detailed_report()
+        self.summary_table.setRowCount(len(detailed))
+        for r, row in enumerate(detailed):
+            for c, val in enumerate([row[0], row[1], f"{row[2]:.1f}", f"{row[3]:.1f}"]):
+                item = QTableWidgetItem(str(val))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+                self.summary_table.setItem(r, c, item)
+        self.summary_table.resizeColumnsToContents()
+        self.summary_table.horizontalHeader().setStretchLastSection(True)
+
+
 class RecordsPage(QWidget):
     data_changed = pyqtSignal()
     
@@ -528,7 +547,6 @@ class RecordsPage(QWidget):
         header.addWidget(page_title("Crop Records"))
         header.addStretch()
 
-        # Search bar with icon
         search_container = QFrame()
         search_container.setStyleSheet(f"""
             QFrame {{
@@ -567,7 +585,7 @@ class RecordsPage(QWidget):
         card_v = QVBoxLayout()
         card_v.setContentsMargins(0, 0, 0, 0)
         self.table = make_table()
-        self.table.setColumnWidth(0, 50)  # ID column width
+        self.table.setColumnWidth(0, 50)
         self.table.cellClicked.connect(self.select)
         card_v.addWidget(self.table)
         card.setLayout(card_v)
@@ -616,21 +634,20 @@ class RecordsPage(QWidget):
             form_layout.addWidget(w)
         form_layout.addStretch()
 
-        # Button container
         btn_container = QHBoxLayout()
         btn_container.setSpacing(10)
         
-        add_btn = QPushButton("➕ Add")
+        add_btn = QPushButton("Add")
         add_btn.setStyleSheet(BTN_PRIMARY)
         add_btn.setFixedHeight(42)
         add_btn.clicked.connect(self.add)
         
-        upd_btn = QPushButton("✏️ Update")
+        upd_btn = QPushButton("Update")
         upd_btn.setStyleSheet(BTN_GHOST)
         upd_btn.setFixedHeight(42)
         upd_btn.clicked.connect(self.update)
         
-        del_btn = QPushButton("🗑️ Delete")
+        del_btn = QPushButton("Delete")
         del_btn.setStyleSheet(BTN_DANGER)
         del_btn.setFixedHeight(42)
         del_btn.clicked.connect(self.delete)
@@ -647,7 +664,6 @@ class RecordsPage(QWidget):
         self.load()
 
     def load_dropdowns(self):
-        # Clear existing items
         self.crop.clear()
         self.soil.clear()
         self.fert.clear()
@@ -851,8 +867,8 @@ class AboutPage(QWidget):
             f"<p style='font-size:12px; color:{TEXT_SEC}; text-align:center; line-height:2.2;'>"
             f"<b style='color:{ACCENT};'>Version:</b> 1.0<br>"
             f"<b style='color:{ACCENT};'>Created by:</b> Group 3 — CPE22S1<br>"
-            f"<b style='color:{ACCENT};'>Year:</b> 2025<br><br>"
-            f"<span style='color:{WARM_BROWN};'>© 2025 Flora. Smart farming for a sustainable future.</span></p>"
+            f"<b style='color:{ACCENT};'>Year:</b> 2026<br><br>"
+            f"<span style='color:{WARM_BROWN};'>© 2026 Flora. Smart farming for a sustainable future.</span></p>"
         )
         text.setWordWrap(True)
         text.setTextFormat(Qt.TextFormat.RichText)
