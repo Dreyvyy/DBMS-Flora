@@ -22,6 +22,7 @@ WARM_BROWN = "#C4A071"
 CREAM      = "#DFCCB1"
 DARK_BROWN = "#846044"
 PURPLE     = "#A765D5"  
+CORNSILK   = "#FEFAE0"
 
 TABLE_STYLE = f"""
     QTableWidget {{
@@ -147,7 +148,6 @@ INPUT_STYLE = f"""
     }}
 """
 
-# Enhanced Button Styles
 BTN_PRIMARY = f"""
     QPushButton {{
         background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -202,7 +202,6 @@ BTN_DANGER = f"""
     }}
 """
 
-# Enhanced Tab Style
 TAB_STYLE = f"""
     QTabWidget::pane {{
         border: 1px solid {BORDER};
@@ -233,9 +232,8 @@ TAB_STYLE = f"""
     }}
 """
 
-# ── GLOBAL STYLE (Keep existing but add table enhancements) ───────────────
 GLOBAL_STYLE = f"""
-    * {{ font-family: 'Segoe UI', 'Arial', sans-serif; }}
+    * {{ font-family: 'Segoe UI', 'MuseoModerno', sans-serif; }}
     QMainWindow, QWidget {{ background-color: {BG_DEEP}; color: {TEXT_PRI}; }}
     QStackedWidget {{ background-color: {BG_DEEP}; }}
     QScrollBar:vertical {{ background: {BG_PANEL}; width: 8px; border-radius: 4px; }}
@@ -261,19 +259,19 @@ GLOBAL_STYLE = f"""
 SIDEBAR_STYLE = f"""
     QFrame#sidebar {{ background-color: {BG_PANEL}; border-right: 1px solid {BORDER}; }}
     #logo {{ font-size: 18px; font-weight: 900; color: {ACCENT}; padding: 8px 20px 0 20px; letter-spacing: 3px; }}
-    #tagline {{ font-size: 8px; color: {TEXT_SEC}; padding: 0 20px 10px 20px; letter-spacing: 3px; }}
+    #tagline {{ font-size: 8px; color: {TEXT_SEC}; padding: 0 20px 10px 20px; letter-spacing: 3px; font-family: 'MuseoModerno'; }}
     #username {{ font-size: 11px; color: {TEXT_SEC}; padding: 4px 20px 14px 20px; letter-spacing: 1px; }}
     #nav-btn {{
         background-color: transparent; color: {TEXT_SEC};
-        font-size: 13px; font-weight: 600; text-align: left;
-        padding: 11px 20px; margin: 1px 10px; border: none; border-radius: 8px;
+        font-size: 25px; font-weight: 600; text-align: right;
+        padding: 15px 20px; margin: 3px 20px; border: none; border-radius: 8px;
     }}
     #nav-btn:hover {{ background-color: {BG_HOVER}; color: {TEXT_PRI}; }}
     #nav-btn-active {{
         background-color: {BG_HOVER}; color: {ACCENT};
-        font-size: 13px; font-weight: 700; text-align: left;
-        padding: 11px 17px; margin: 1px 10px;
-        border: none; border-left: 3px solid {ACCENT}; border-radius: 8px;
+        font-size: 25px; font-weight: 700; text-align: right;
+        padding: 15px 20px; margin: 3px 20px;
+        border: none; border-right: 3px solid {ACCENT}; border-radius: 8px;
     }}
     #logout-btn {{
         background-color: {RED_BG}; color: {RED_SOFT};
@@ -283,7 +281,6 @@ SIDEBAR_STYLE = f"""
     #logout-btn:hover {{ background-color: {RED_SOFT}; color: white; }}
 """
 
-# ── Helpers ────────────────────────────────────────────────────────────────
 def page_title(text):
     lbl = QLabel(text)
     lbl.setStyleSheet(f"""
@@ -379,7 +376,6 @@ def make_table():
     
     return t
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
 class FloraSidebar(QFrame):
     def __init__(self, stacked_widget, username):
         super().__init__()
@@ -447,7 +443,6 @@ class FloraSidebar(QFrame):
             from login import show_login_window
             show_login_window()
 
-# ── Dashboard ──────────────────────────────────────────────────────────────
 class DashboardPage(QWidget):
     def __init__(self):
         super().__init__()
@@ -568,7 +563,6 @@ class RecordsPage(QWidget):
         header.addWidget(search_container)
         layout.addLayout(header)
 
-        # Table container
         card = section_card()
         card_v = QVBoxLayout()
         card_v.setContentsMargins(0, 0, 0, 0)
@@ -579,7 +573,6 @@ class RecordsPage(QWidget):
         card.setLayout(card_v)
         layout.addWidget(card, stretch=1)
 
-        # Input form
         form_card = QFrame()
         form_card.setStyleSheet(f"""
             QFrame {{
@@ -659,7 +652,6 @@ class RecordsPage(QWidget):
         self.soil.clear()
         self.fert.clear()
         
-        # Add items with icons
         for i in self.db.get_crops(): 
             self.crop.addItem(f"🌾 {i[1]}", i[0])
         for i in self.db.get_soil():  
@@ -684,17 +676,14 @@ class RecordsPage(QWidget):
         self.table.resizeColumnsToContents()
         self.table.horizontalHeader().setStretchLastSection(True)
         
-        # Set ID column width
         self.table.setColumnWidth(0, 60)
         
-        # Update status
         self.table.setToolTip(f"Showing {len(data)} record(s)")
 
     def select(self):
         row = self.table.currentRow()
         if row >= 0:
             self.amount.setText(self.table.item(row, 5).text())
-            # Highlight the selected row
             self.table.selectRow(row)
 
     def notify_data_changed(self):
@@ -748,7 +737,6 @@ class RecordsPage(QWidget):
         else:
             QMessageBox.warning(self, "Error", "⚠️ Select a record to delete")
 
-# ── Reports Page (Keep existing but enhance) ──────────────────────────────
 def build_report_table(columns, data, float_cols=None):
     t = make_table()
     t.setColumnCount(len(columns))
@@ -793,7 +781,6 @@ class ReportsPage(QWidget):
             v = QVBoxLayout()
             v.setContentsMargins(0, 0, 0, 0)
             
-            # Add title if provided
             if title:
                 title_label = QLabel(title)
                 title_label.setStyleSheet(f"""
@@ -815,21 +802,18 @@ class ReportsPage(QWidget):
             w.setLayout(wl)
             return w
         
-        # Basic Report
         basic_data = self.db.crop_report()
         self.tabs.addTab(wrap(build_report_table(
             ["🌾 CROP", "📊 TIMES PLANTED"],
             basic_data
         ), "Crop Planting Frequency"), "Basic Report")
         
-        # Detailed Report
         detailed_data = self.db.crop_detailed_report()
         self.tabs.addTab(wrap(build_report_table(
             ["🌾 CROP", "📊 TIMES PLANTED", "⚖️ TOTAL FERT (KG)", "📈 AVG (KG)", "📉 MIN (KG)", "📊 MAX (KG)"],
             detailed_data, float_cols={2, 3, 4, 5}
         ), "Detailed Fertilizer Analysis"), "Detailed Report")
         
-        # Seasonal Report
         seasonal_data = self.db.crop_seasonal_report()
         self.tabs.addTab(wrap(build_report_table(
             ["🌾 CROP", "🌦️ SEASON", "📊 TIMES PLANTED", "⚖️ TOTAL FERT (KG)"],
@@ -865,7 +849,7 @@ class AboutPage(QWidget):
             "track fertilizer usage, and generate detailed analytical reports.</p>"
             f"<br><hr style='border:none; border-top:1px solid {BORDER};'><br>"
             f"<p style='font-size:12px; color:{TEXT_SEC}; text-align:center; line-height:2.2;'>"
-            f"<b style='color:{ACCENT};'>Version:</b> 2.0<br>"
+            f"<b style='color:{ACCENT};'>Version:</b> 1.0<br>"
             f"<b style='color:{ACCENT};'>Created by:</b> Group 3 — CPE22S1<br>"
             f"<b style='color:{ACCENT};'>Year:</b> 2025<br><br>"
             f"<span style='color:{WARM_BROWN};'>© 2025 Flora. Smart farming for a sustainable future.</span></p>"
