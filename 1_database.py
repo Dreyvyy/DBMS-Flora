@@ -1,4 +1,3 @@
-# database.py
 import pyodbc
 from typing import Optional, List, Tuple, Any
 
@@ -53,12 +52,10 @@ class Database:
             return False
             
         try:
-            # Check if username exists
             self.cursor.execute("SELECT Username FROM Users WHERE Username = ?", (username,))
             if self.cursor.fetchone():
                 return False
             
-            # Insert new user
             self.cursor.execute(
                 "INSERT INTO Users (Username, Password) VALUES (?,?)", 
                 (username, password)
