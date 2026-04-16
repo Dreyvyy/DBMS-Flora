@@ -49,6 +49,7 @@ class Register(QWidget):
                 border: 2px solid #e0e0e0;
                 border-radius: 8px;
                 background-color: white;
+                color: #000000;
             }
             QLineEdit:focus {
                 border: 2px solid #2d5a3f;
@@ -69,6 +70,7 @@ class Register(QWidget):
                 border: 2px solid #e0e0e0;
                 border-radius: 8px;
                 background-color: white;
+                color: #000000;
             }
             QLineEdit:focus {
                 border: 2px solid #2d5a3f;
@@ -89,6 +91,7 @@ class Register(QWidget):
                 border: 2px solid #e0e0e0;
                 border-radius: 8px;
                 background-color: white;
+                color: #000000;
             }
             QLineEdit:focus {
                 border: 2px solid #2d5a3f;
@@ -161,6 +164,7 @@ class Register(QWidget):
             QWidget {
                 background-color: #f8f9fa;
                 font-family: 'Segoe UI', 'Arial', sans-serif;
+                color: #000000;
             }
         """)
     
