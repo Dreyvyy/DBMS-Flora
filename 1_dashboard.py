@@ -509,9 +509,15 @@ class DashboardPage(QWidget):
         total_crops   = len(self.db.get_crops())
         total_records = len(self.db.fetch_records(""))
         crop_rep      = self.db.crop_report()
-        most_planted  = crop_rep[0][0] if crop_rep else "N/A"
         records       = self.db.fetch_records("")
         avg_fert      = round(sum(x[5] for x in records) / max(total_records, 1), 1) if records else 0
+
+        if crop_rep:
+            highest_count = crop_rep[0][1]
+            top_crops = [row[0] for row in crop_rep if row[1] == highest_count]
+            most_planted = ", ".join(top_crops)
+        else:
+            most_planted = "N/A"
 
         colors = [ACCENT, ACCENT2, WARM_BROWN, CREAM]
         self.cards_layout.addWidget(stat_card("🌾", total_crops,      "Crop Types",    colors[0]))
