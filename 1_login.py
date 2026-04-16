@@ -8,6 +8,7 @@ class Login(QWidget):
     def __init__(self):
         super().__init__()
 
+        #If error is happening when user is trying to access the application
         try:
             self.db = Database()
             if not self.db.cursor:
@@ -41,7 +42,6 @@ class Login(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Left panel - decorative
         left_panel = QFrame()
         left_panel.setStyleSheet("""
             QFrame {
@@ -54,7 +54,6 @@ class Login(QWidget):
         left_layout = QVBoxLayout()
         left_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Decorative elements on left panel
         leaf_icon = QLabel("🌿")
         leaf_icon.setStyleSheet("font-size: 80px; background: transparent;")
         leaf_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -66,6 +65,7 @@ class Login(QWidget):
             color: white; 
             background: transparent;
             margin-top: 20px;
+            font-family: 'MuseoModerno';
         """)
         left_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
@@ -97,7 +97,6 @@ class Login(QWidget):
         
         left_panel.setLayout(left_layout)
         
-        # Right panel - login form
         right_panel = QFrame()
         right_panel.setStyleSheet("""
             QFrame {
@@ -111,7 +110,6 @@ class Login(QWidget):
         right_layout.setContentsMargins(60, 80, 60, 80)
         right_layout.setSpacing(20)
         
-        # Logo and title
         logo = QLabel("🌱")
         logo.setStyleSheet("font-size: 48px; background: transparent;")
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -124,19 +122,19 @@ class Login(QWidget):
             color: #2c3e50;
             letter-spacing: 3px;
             margin-bottom: 10px;
+            font-family: 'MuseoModerno';
         """)
         
         subtitle = QLabel("Sign in to continue")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setStyleSheet("""
-            font-size: 13px; 
+            font-size: 15px; 
             color: #7f8c8d;
             margin-bottom: 30px;
         """)
         
-        # Username field
         username_label = QLabel("Username")
-        username_label.setStyleSheet("font-size: 12px; font-weight: bold; color: #34495e; margin-bottom: 5px;")
+        username_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #34495e; margin-bottom: 3px; font-family: 'MuseoModerno';")
         
         self.user = QLineEdit()
         self.user.setPlaceholderText("Enter your username")
@@ -145,22 +143,21 @@ class Login(QWidget):
                 padding: 12px;
                 font-size: 14px;
                 border: 2px solid #e0e0e0;
-                border-radius: 8px;
+                border-radius: 5px;
                 background-color: white;
-                color: #A76D5E;
+                color: #000000;
             }
             QLineEdit:focus {
                 border: 2px solid #2d5a3f;
-                background-color: #DFCCB1;
+                background-color: #fefae0;
             }
             QLineEdit:hover {
                 border: 2px solid #a8e6cf;
             }
         """)
         
-        # Password field
         password_label = QLabel("Password")
-        password_label.setStyleSheet("font-size: 12px; font-weight: bold; color: #34495e; margin-bottom: 5px; margin-top: 10px;")
+        password_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #34495e; margin-bottom: 3px; margin-top: 5px; font-family: 'MuseoModerno'; ")
         
         self.passw = QLineEdit()
         self.passw.setPlaceholderText("Enter your password")
@@ -170,13 +167,13 @@ class Login(QWidget):
                 padding: 12px;
                 font-size: 14px;
                 border: 2px solid #e0e0e0;
-                border-radius: 8px;
+                border-radius: 5px;
                 background-color: white;
-                color: #A76D5E;
+                color: #000000;
             }
             QLineEdit:focus {
                 border: 2px solid #2d5a3f;
-                background-color: #DFCCB1;
+                background-color: #fefae0;
             }
             QLineEdit:hover {
                 border: 2px solid #a8e6cf;
@@ -219,7 +216,6 @@ class Login(QWidget):
             }
         """)
         
-        # Create Account button
         reg = QPushButton("CREATE NEW ACCOUNT")
         reg.setStyleSheet("""
             QPushButton {
