@@ -1,0 +1,13 @@
+USE FLORA
+GO
+
+CREATE TABLE Users (
+    User_Id INT PRIMARY KEY IDENTITY(1,1),
+    Username VARCHAR(50) UNIQUE,
+    Password VARCHAR(50)
+);
+
+INSERT INTO Users (Username, Password)
+VALUES ('admin', '1234');
+
+GO
